@@ -36,10 +36,19 @@ show_usage() {
     echo "  https://${DDEV_SITENAME:-your-project}.${DDEV_TLD:-ddev.site}:${MCP_PORT}"
 }
 
-# Check if MCP Inspector is installed
+# Check if MCP Inspector is installed and get help if requested
 if ! command -v npx &> /dev/null; then
     echo -e "${RED}Error: npx is not available. Please install Node.js first.${NC}"
     exit 1
+fi
+
+# If help is requested, show both our help and MCP Inspector help
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    show_usage
+    echo ""
+    echo -e "${BLUE}MCP Inspector CLI Help:${NC}"
+    npx @modelcontextprotocol/inspector --help || echo "Could not get MCP Inspector help"
+    exit 0
 fi
 
 # Check if arguments provided
@@ -64,6 +73,11 @@ else
     echo -e "${YELLOW}Press Ctrl+C to stop the inspector${NC}"
     echo ""
     
+    # Debug: Show what we're about to execute
+    echo -e "${BLUE}Executing:${NC} npx @modelcontextprotocol/inspector --host ${MCP_HOST} --port ${MCP_PORT} -- $*"
+    echo ""
+    
     # Start inspector with the provided MCP server command
-    npx @modelcontextprotocol/inspector --host ${MCP_HOST} --port ${MCP_PORT} "$@"
+    # Use -- to separate inspector options from server command
+    npx @modelcontextprotocol/inspector --host "${MCP_HOST}" --port "${MCP_PORT}" -- "$@"
 fi
