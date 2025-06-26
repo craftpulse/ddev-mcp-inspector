@@ -1,12 +1,14 @@
 #ddev-generated
 # Docker Compose override for MCP Inspector
-# Exposes port 3000 from the web container for MCP Inspector access
+# Exposes ports 6274 (Inspector UI) and 6277 (Proxy Server) from the web container
 # This file is managed by ddev-mcp-inspector add-on
 
 services:
   web:
     ports:
-      - "6274:6274"
+      - "${MCP_INSPECTOR_PORT:-6274}:${MCP_INSPECTOR_PORT:-6274}"
+      - "${MCP_INSPECTOR_PROXY_PORT:-6277}:${MCP_INSPECTOR_PROXY_PORT:-6277}"
     environment:
-      - MCP_INSPECTOR_HOST=0.0.0.0
-      - MCP_INSPECTOR_PORT=6274
+      - MCP_INSPECTOR_HOST=${MCP_INSPECTOR_HOST:-0.0.0.0}
+      - MCP_INSPECTOR_PORT=${MCP_INSPECTOR_PORT:-6274}
+      - MCP_INSPECTOR_PROXY_PORT=${MCP_INSPECTOR_PROXY_PORT:-6277}
