@@ -1,0 +1,48 @@
+#!/bin/bash
+#ddev-generated
+
+## Description: Stop any running MCP Inspector processes
+## Usage: mcp-stop
+## Example: "ddev mcp-stop"
+
+set -eu -o pipefail
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Get port from environment or use default
+MCP_PORT=${MCP_INSPECTOR_PORT:-6274}
+
+echo -e "${GREEN}Stopping MCP Inspector processes...${NC}"
+
+# Find and kill MCP Inspector processes
+PIDS=$(pgrep -f "@modelcontextprotocol/inspector" || true)
+
+if [ -n "$PIDS" ]; then
+    echo -e "${YELLOW}Found running MCP Inspector processes: $PIDS${NC}"
+    echo "$PIDS" | xargs kill -TERM
+    sleep 2
+    
+    # Check if processes are still running and force kill if needed
+    REMAINING_PIDS=$(pgrep -f "@modelcontextprotocol/inspector" || true)
+    if [ -n "$REMAINING_PIDS" ]; then
+        echo -e "${YELLOW}Force killing remaining processes: $REMAINING_PIDS${NC}"
+        echo "$REMAINING_PIDS" | xargs kill -KILL
+    fi
+    
+    echo -e "${GREEN}MCP Inspector stopped successfully.${NC}"
+else
+    echo -e "${YELLOW}No running MCP Inspector processes found.${NC}"
+fi
+
+# Also kill any processes using the configured port
+PORT_PIDS=$(lsof -ti:${MCP_PORT} 2>/dev/null || true)
+if [ -n "$PORT_PIDS" ]; then
+    echo -e "${YELLOW}Stopping processes using port ${MCP_PORT}: $PORT_PIDS${NC}"
+    echo "$PORT_PIDS" | xargs kill -TERM 2>/dev/null || true
+fi
+
+echo -e "${GREEN}Done.${NC}"

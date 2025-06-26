@@ -1,0 +1,69 @@
+#!/bin/bash
+#ddev-generated
+
+## Description: Start MCP Inspector for testing MCP servers
+## Usage: mcp-inspector [mcp-server-command]
+## Example: "ddev mcp-inspector php /var/www/html/cms/craft mcp/serve"
+## Example: "ddev mcp-inspector python my-mcp-server.py"
+## Example: "ddev mcp-inspector node my-mcp-server.js"
+
+set -eu -o pipefail
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Get port from environment or use default
+MCP_PORT=${MCP_INSPECTOR_PORT:-6274}
+MCP_HOST=${MCP_INSPECTOR_HOST:-0.0.0.0}
+
+# Function to show usage
+show_usage() {
+    echo -e "${BLUE}MCP Inspector - Model Context Protocol Server Testing Tool${NC}"
+    echo ""
+    echo "Usage: ddev mcp-inspector [mcp-server-command]"
+    echo ""
+    echo "Examples:"
+    echo "  ddev mcp-inspector php /var/www/html/cms/craft mcp/serve"
+    echo "  ddev mcp-inspector python my-mcp-server.py"
+    echo "  ddev mcp-inspector node my-mcp-server.js"
+    echo ""
+    echo "Access the inspector at:"
+    echo "  http://localhost:${MCP_PORT}"
+    echo "  https://${DDEV_SITENAME:-your-project}.${DDEV_TLD:-ddev.site}:${MCP_PORT}"
+}
+
+# Check if MCP Inspector is installed
+if ! command -v npx &> /dev/null; then
+    echo -e "${RED}Error: npx is not available. Please install Node.js first.${NC}"
+    exit 1
+fi
+
+# Check if arguments provided
+if [ $# -eq 0 ]; then
+    show_usage
+    echo ""
+    echo -e "${YELLOW}Starting MCP Inspector without a specific server...${NC}"
+    echo "You can connect to your MCP server manually through the web interface."
+    echo ""
+    
+    # Start inspector in standalone mode
+    echo -e "${GREEN}Starting MCP Inspector...${NC}"
+    npx @modelcontextprotocol/inspector --host ${MCP_HOST} --port ${MCP_PORT}
+else
+    # Start with specific MCP server command
+    echo -e "${GREEN}Starting MCP Inspector with server command:${NC} $*"
+    echo ""
+    echo -e "${YELLOW}Inspector will be available at:${NC}"
+    echo "  http://localhost:${MCP_PORT}"
+    echo "  https://${DDEV_SITENAME:-your-project}.${DDEV_TLD:-ddev.site}:${MCP_PORT}"
+    echo ""
+    echo -e "${YELLOW}Press Ctrl+C to stop the inspector${NC}"
+    echo ""
+    
+    # Start inspector with the provided MCP server command
+    npx @modelcontextprotocol/inspector --host ${MCP_HOST} --port ${MCP_PORT} "$@"
+fi

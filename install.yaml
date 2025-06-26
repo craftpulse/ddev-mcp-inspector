@@ -1,6 +1,71 @@
+# Details about the install.yaml file are at https://ddev.readthedocs.io/en/stable/users/extend/additional-services/#sections-and-features-of-ddev-get-add-on-installyaml
+
 name: mcp-inspector
 
+# pre_install_actions - list of actions to run before installing the addon.
+# Examples would be removing an extraneous docker volume,
+# or doing a sanity check for requirements.
+# DDEV environment variables can be interpolated into these actions
+# pre_install_actions are executed in the context of the target project's root directory.
+pre_install_actions:
+  - |
+    #ddev-description:Installing MCP Inspector globally
+    npm install -g @modelcontextprotocol/inspector
+
+# Files and directories listed here will be copied into the project .ddev directory
+# DDEV environment variables can be interpolated into these filenames
 project_files:
   - docker-compose.mcp-inspector.yaml
+  - commands/web/mcp-inspector
+  - commands/web/mcp-stop
 
+# List of files and directories that are copied into the global .ddev directory
+# Note that if these files are used by a team, you will need to automate their installation
+# by adding `ddev get` to your workflow to ensure that everyone has them.
+global_files: []
+
+# Version constraint for DDEV that will be validated against the running DDEV executable
+# and prevent add-on from being installed if it doesn't validate.
 ddev_version_constraint: '>= v1.24.3'
+
+# List of add-on names that this add-on depends on
+dependencies: []
+
+# DDEV environment variables can be interpolated into these actions.
+# post_install_actions are executed in the context of the target project's .ddev directory.
+post_install_actions:
+  - |
+    #ddev-description:Setting up MCP Inspector commands
+    chmod +x commands/web/mcp-inspector
+    chmod +x commands/web/mcp-stop
+  - |
+    #ddev-description:MCP Inspector add-on installed successfully!
+    echo ""
+    echo "🚀 MCP Inspector add-on installed!"
+    echo ""
+    echo "Available commands:"
+    echo "  ddev mcp-inspector [mcp-server-command] - Start MCP Inspector"
+    echo "  ddev mcp-stop                          - Stop MCP Inspector"
+    echo ""
+    echo "Examples:"
+    echo "  ddev mcp-inspector php /var/www/html/cms/craft mcp/serve"
+    echo "  ddev mcp-inspector python my-mcp-server.py"
+    echo "  ddev mcp-inspector node my-mcp-server.js"
+    echo ""
+    echo "The inspector will be available at:"
+    echo "  http://localhost:\${MCP_INSPECTOR_PORT:-6274}"
+    echo "  https://\${DDEV_SITENAME}.\${DDEV_TLD}:\${MCP_INSPECTOR_PORT:-6274}"
+    echo ""
+    echo "📖 Documentation: https://github.com/craftpulse/ddev-mcp-inspector"
+    echo ""
+
+# Shell actions that can be done during removal of the add-on.
+# Files listed in project_files section will be automatically removed here if they contain #ddev-generated line.
+# removal_actions are executed in the context of the target project's .ddev directory.
+removal_actions:
+  - |
+    #ddev-description:Stopping any running MCP Inspector processes
+    # Stop any running MCP Inspector processes
+    if command -v mcp-stop >/dev/null 2>&1; then
+      ./commands/web/mcp-stop 2>/dev/null || true
+    fi

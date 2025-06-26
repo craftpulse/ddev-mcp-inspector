@@ -1,16 +1,12 @@
 #ddev-generated
-# Simple template to demonstrate mcp-inspector
-services:
-  mcp-inspector:
-    container_name: ddev-${DDEV_SITENAME}-mcp-inspector
-    image: ${MCP_INSPECTOR_DOCKER_IMAGE:-busybox:stable}
-    command: tail -f /dev/null
-    restart: "no"
-    # These labels ensure this service is discoverable by DDEV.
-    labels:
-      com.ddev.site-name: ${DDEV_SITENAME}
-      com.ddev.approot: ${DDEV_APPROOT}
+# Docker Compose override for MCP Inspector
+# Exposes port 3000 from the web container for MCP Inspector access
+# This file is managed by ddev-mcp-inspector add-on
 
-    volumes:
-      - ".:/mnt/ddev_config"
-      - "ddev-global-cache:/mnt/ddev-global-cache"
+services:
+  web:
+    ports:
+      - "6274:6274"
+    environment:
+      - MCP_INSPECTOR_HOST=0.0.0.0
+      - MCP_INSPECTOR_PORT=6274
