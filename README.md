@@ -66,7 +66,6 @@ All customization options (use with caution):
 | Variable | Flag | Default |
 | -------- | ---- | ------- |
 | `MCP_INSPECTOR_PORT` | `--mcp-inspector-port` | `6274` |
-| `MCP_INSPECTOR_HOST` | `--mcp-inspector-host` | `0.0.0.0` |
 
 ## Troubleshooting
 

@@ -47,7 +47,7 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     show_usage
     echo ""
     echo -e "${BLUE}MCP Inspector CLI Help:${NC}"
-    npx @modelcontextprotocol/inspector --help || echo "Could not get MCP Inspector help"
+    npx @modelcontextprotocol/inspector --help 2>&1 || echo "Could not get MCP Inspector help"
     exit 0
 fi
 
@@ -61,7 +61,8 @@ if [ $# -eq 0 ]; then
     
     # Start inspector in standalone mode
     echo -e "${GREEN}Starting MCP Inspector...${NC}"
-    npx @modelcontextprotocol/inspector --host ${MCP_HOST} --port ${MCP_PORT}
+    echo -e "${BLUE}Note: Inspector will start on its default port, accessible via DDEV port mapping${NC}"
+    npx @modelcontextprotocol/inspector
 else
     # Start with specific MCP server command
     echo -e "${GREEN}Starting MCP Inspector with server command:${NC} $*"
@@ -73,11 +74,10 @@ else
     echo -e "${YELLOW}Press Ctrl+C to stop the inspector${NC}"
     echo ""
     
-    # Debug: Show what we're about to execute
-    echo -e "${BLUE}Executing:${NC} npx @modelcontextprotocol/inspector --host ${MCP_HOST} --port ${MCP_PORT} -- $*"
-    echo ""
+    # Try different approaches to start MCP Inspector
+    echo -e "${BLUE}Attempting to start MCP Inspector...${NC}"
     
-    # Start inspector with the provided MCP server command
-    # Use -- to separate inspector options from server command
-    npx @modelcontextprotocol/inspector --host "${MCP_HOST}" --port "${MCP_PORT}" -- "$@"
+    # First, let's try without host/port options (MCP Inspector might not support them)
+    echo -e "${BLUE}Trying: npx @modelcontextprotocol/inspector $*${NC}"
+    npx @modelcontextprotocol/inspector "$@"
 fi
