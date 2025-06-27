@@ -46,19 +46,28 @@ health_checks() {
   run ddev mcp-inspector --help 2>&1 || true
   [ "$status" -eq 0 ]
   [[ "$output" =~ "MCP Inspector" ]]
+  [[ "$output" =~ "--workdir" ]]
   
   # Test mcp-stop command  
   run ddev mcp-stop --help 2>&1 || true
   [ "$status" -eq 0 ]
   [[ "$output" =~ "Stop any running MCP Inspector" ]]
+  
+  # Test mcp-debug command
+  run ddev mcp-debug 2>&1 || true
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "Debug Information" ]]
 }
 
-@test "Port configuration is exposed in docker-compose" {
+@test "Ports are configured in docker-compose" {
   set -eu -o pipefail
   cd ${TESTDIR}
   
-  # Check if port configuration is present (with environment variable support)
+  # Check if both ports are configured with environment variable support
   run grep -q "MCP_INSPECTOR_PORT" .ddev/docker-compose.mcp-inspector.yaml
+  [ "$status" -eq 0 ]
+  
+  run grep -q "MCP_INSPECTOR_PROXY_PORT" .ddev/docker-compose.mcp-inspector.yaml
   [ "$status" -eq 0 ]
 }
 
@@ -85,13 +94,27 @@ health_checks() {
   
   # Check if the configured port is listening (default 6274)
   MCP_PORT=${MCP_INSPECTOR_PORT:-6274}
-  run ddev exec "netstat -ln | grep :${MCP_PORT} || lsof -i :${MCP_PORT} || ss -ln | grep :${MCP_PORT}"
+  run ddev exec -s mcp-inspector "netstat -ln | grep :${MCP_PORT} || lsof -i :${MCP_PORT} || ss -ln | grep :${MCP_PORT}"
   
   # Clean up - kill any remaining processes
   ddev mcp-stop || true
   
   # The test passes if we got here without errors
   [ "$status" -eq 0 ] || [ "$status" -eq 1 ]  # Allow for port check variations
+}
+
+@test "MCP Inspector workdir option works" {
+  set -eu -o pipefail
+  cd ${TESTDIR}
+  
+  # Create a test file in a subdirectory
+  mkdir -p ${TESTDIR}/custom-dir
+  echo "console.log('Test workdir');" > ${TESTDIR}/custom-dir/test.js
+  
+  # Test the workdir option (just check if it parses correctly)
+  run ddev mcp-inspector --workdir=/var/www/html/custom-dir --help
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "workdir=/var/www/html/custom-dir" ]]
 }
 
 @test "Commands have proper permissions and headers" {
@@ -101,12 +124,16 @@ health_checks() {
   # Check permissions
   [ -x ".ddev/commands/web/mcp-inspector" ]
   [ -x ".ddev/commands/web/mcp-stop" ]
+  [ -x ".ddev/commands/web/mcp-debug" ]
   
   # Check for #ddev-generated headers
   run grep -q "#ddev-generated" .ddev/commands/web/mcp-inspector
   [ "$status" -eq 0 ]
   
   run grep -q "#ddev-generated" .ddev/commands/web/mcp-stop  
+  [ "$status" -eq 0 ]
+  
+  run grep -q "#ddev-generated" .ddev/commands/web/mcp-debug
   [ "$status" -eq 0 ]
 }
 

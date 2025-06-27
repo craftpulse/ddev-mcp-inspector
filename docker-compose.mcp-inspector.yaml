@@ -1,14 +1,47 @@
 #ddev-generated
-# Docker Compose override for MCP Inspector
-# Exposes ports 6274 (Inspector UI) and 6277 (Proxy Server) from the web container
+# Docker Compose service for MCP Inspector
+# Creates dedicated container with proper networking and environment configuration
 # This file is managed by ddev-mcp-inspector add-on
+#
+# MCP Inspector runs as a dual-component system:
+# 1. A React UI (port 6274) for interacting with MCP servers
+# 2. A Node.js proxy server (port 6277) that bridges browser communications to MCP servers
+#
+# Architecture: Browser → DDEV Router → MCP Inspector Service (UI:6274 + Proxy:6277) → MCP Server
 
 services:
-  web:
+  mcp-inspector:
+    container_name: "ddev-${DDEV_SITENAME}-mcp-inspector"
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}
+    image: node:22-alpine
+    working_dir: /workspace
+    restart: "no"
+    expose:
+      - "${MCP_INSPECTOR_PORT:-6274}"
+      - "${MCP_INSPECTOR_PROXY_PORT:-6277}"
     ports:
       - "${MCP_INSPECTOR_PORT:-6274}:${MCP_INSPECTOR_PORT:-6274}"
       - "${MCP_INSPECTOR_PROXY_PORT:-6277}:${MCP_INSPECTOR_PROXY_PORT:-6277}"
     environment:
-      - MCP_INSPECTOR_HOST=${MCP_INSPECTOR_HOST:-0.0.0.0}
-      - MCP_INSPECTOR_PORT=${MCP_INSPECTOR_PORT:-6274}
-      - MCP_INSPECTOR_PROXY_PORT=${MCP_INSPECTOR_PROXY_PORT:-6277}
+      # Critical: Must bind to all interfaces for Docker networking
+      - HOST=${MCP_INSPECTOR_HOST:-0.0.0.0}
+      - CLIENT_PORT=${MCP_INSPECTOR_PORT:-6274}
+      - SERVER_PORT=${MCP_INSPECTOR_PROXY_PORT:-6277}
+      # CORS configuration for DDEV
+      - ALLOWED_ORIGINS=http://localhost:${MCP_INSPECTOR_PORT:-6274},http://127.0.0.1:${MCP_INSPECTOR_PORT:-6274},http://${DDEV_SITENAME}.${DDEV_TLD}:${MCP_INSPECTOR_PORT:-6274}
+      # Development mode - remove in production
+      - NODE_ENV=development
+    volumes:
+      - "../:/workspace:cached"
+      - "ddev-global-cache:/mnt/ddev-global-cache"
+    networks:
+      - default
+      - ddev_default
+    # Start command - will be overridden by custom commands
+    command: >
+      sh -c "
+        echo 'MCP Inspector container ready. Use ddev mcp-inspector to start.'
+        tail -f /dev/null
+      "

@@ -3,14 +3,8 @@
 name: mcp-inspector
 
 # pre_install_actions - list of actions to run before installing the addon.
-# Examples would be removing an extraneous docker volume,
-# or doing a sanity check for requirements.
-# DDEV environment variables can be interpolated into these actions
-# pre_install_actions are executed in the context of the target project's root directory.
-pre_install_actions:
-  - |
-    #ddev-description:Installing MCP Inspector globally
-    npm install -g @modelcontextprotocol/inspector
+# MCP Inspector will be installed in the dedicated container, not globally
+pre_install_actions: []
 
 # Files and directories listed here will be copied into the project .ddev directory
 # DDEV environment variables can be interpolated into these filenames
@@ -18,6 +12,7 @@ project_files:
   - docker-compose.mcp-inspector.yaml
   - commands/web/mcp-inspector
   - commands/web/mcp-stop
+  - commands/web/mcp-debug
 
 # List of files and directories that are copied into the global .ddev directory
 # Note that if these files are used by a team, you will need to automate their installation
@@ -38,6 +33,7 @@ post_install_actions:
     #ddev-description:Setting up MCP Inspector commands
     chmod +x commands/web/mcp-inspector
     chmod +x commands/web/mcp-stop
+    chmod +x commands/web/mcp-debug
   - |
     #ddev-description:MCP Inspector add-on installed successfully!
     echo ""
@@ -46,15 +42,20 @@ post_install_actions:
     echo "Available commands:"
     echo "  ddev mcp-inspector [mcp-server-command] - Start MCP Inspector"
     echo "  ddev mcp-stop                          - Stop MCP Inspector"
+    echo "  ddev mcp-debug                         - Debug MCP Inspector setup"
     echo ""
     echo "Examples:"
     echo "  ddev mcp-inspector php /var/www/html/cms/craft mcp/serve"
     echo "  ddev mcp-inspector python my-mcp-server.py"
     echo "  ddev mcp-inspector node my-mcp-server.js"
+    echo "  ddev mcp-inspector --workdir=/var/www/html node my-mcp-server.js"
     echo ""
     echo "The inspector will be available at:"
-    echo "  http://localhost:\${MCP_INSPECTOR_PORT:-6274}"
-    echo "  https://\${DDEV_SITENAME}.\${DDEV_TLD}:\${MCP_INSPECTOR_PORT:-6274}"
+    echo "  http://localhost:\${MCP_INSPECTOR_PORT:-6274} (Inspector UI)"
+    echo "  (Proxy server runs on port \${MCP_INSPECTOR_PROXY_PORT:-6277})"
+    echo ""
+    echo "Architecture: MCP Inspector runs as a dedicated Docker service"
+    echo "with proper container networking and environment configuration."
     echo ""
     echo "📖 Documentation: https://github.com/craftpulse/ddev-mcp-inspector"
     echo ""
@@ -64,8 +65,11 @@ post_install_actions:
 # removal_actions are executed in the context of the target project's .ddev directory.
 removal_actions:
   - |
-    #ddev-description:Stopping any running MCP Inspector processes
-    # Stop any running MCP Inspector processes
-    if command -v mcp-stop >/dev/null 2>&1; then
-      ./commands/web/mcp-stop 2>/dev/null || true
+    #ddev-description:Stopping MCP Inspector service
+    # Stop MCP Inspector service and clean up
+    if command -v ddev >/dev/null 2>&1; then
+      if ddev exec -s mcp-inspector echo "test" >/dev/null 2>&1; then
+        echo "Stopping MCP Inspector service..."
+        ddev exec -s mcp-inspector pkill -f "@modelcontextprotocol/inspector" || true
+      fi
     fi

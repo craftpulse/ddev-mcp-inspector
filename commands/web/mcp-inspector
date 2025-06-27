@@ -2,10 +2,10 @@
 #ddev-generated
 
 ## Description: Start MCP Inspector for testing MCP servers
-## Usage: mcp-inspector [mcp-server-command]
+## Usage: mcp-inspector [--workdir=PATH] [mcp-server-command]
 ## Example: "ddev mcp-inspector php /var/www/html/cms/craft mcp/serve"
 ## Example: "ddev mcp-inspector python my-mcp-server.py"
-## Example: "ddev mcp-inspector node my-mcp-server.js"
+## Example: "ddev mcp-inspector --workdir=/var/www/html node my-mcp-server.js"
 
 set -eu -o pipefail
 
@@ -16,68 +16,164 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Get port from environment or use default
+# Get ports from environment or use defaults
 MCP_PORT=${MCP_INSPECTOR_PORT:-6274}
+MCP_PROXY_PORT=${MCP_INSPECTOR_PROXY_PORT:-6277}
 MCP_HOST=${MCP_INSPECTOR_HOST:-0.0.0.0}
+
+# Default working directory
+WORKDIR="/workspace"
+
+# Parse command line arguments for workdir
+for arg in "$@"; do
+    if [[ "$arg" == --workdir=* ]]; then
+        WORKDIR="${arg#*=}"
+        # Remove this argument from the arguments list
+        set -- "${@/$arg/}"
+        break
+    fi
+done
 
 # Function to show usage
 show_usage() {
     echo -e "${BLUE}MCP Inspector - Model Context Protocol Server Testing Tool${NC}"
     echo ""
-    echo "Usage: ddev mcp-inspector [mcp-server-command]"
+    echo "Usage: ddev mcp-inspector [--workdir=PATH] [mcp-server-command]"
+    echo ""
+    echo "Options:"
+    echo "  --workdir=PATH    Set working directory for server command (default: /workspace)"
     echo ""
     echo "Examples:"
     echo "  ddev mcp-inspector php /var/www/html/cms/craft mcp/serve"
     echo "  ddev mcp-inspector python my-mcp-server.py"
-    echo "  ddev mcp-inspector node my-mcp-server.js"
+    echo "  ddev mcp-inspector --workdir=/var/www/html node my-mcp-server.js"
     echo ""
     echo "Access the inspector at:"
-    echo "  http://localhost:${MCP_PORT}"
-    echo "  https://${DDEV_SITENAME:-your-project}.${DDEV_TLD:-ddev.site}:${MCP_PORT}"
+    echo "  http://localhost:${MCP_PORT} (Inspector UI)"
+    echo "  http://127.0.0.1:${MCP_PORT} (if localhost redirects)"
 }
 
-# Check if MCP Inspector is installed and get help if requested
-if ! command -v npx &> /dev/null; then
-    echo -e "${RED}Error: npx is not available. Please install Node.js first.${NC}"
-    exit 1
-fi
+# Function to check if ports are available
+check_ports() {
+    local port_in_use=false
+    
+    # Check if ports are in use within the container
+    if ddev exec -s mcp-inspector netstat -tlnp 2>/dev/null | grep -q ":${MCP_PORT}\|:${MCP_PROXY_PORT}"; then
+        echo -e "${YELLOW}Warning: Ports ${MCP_PORT} or ${MCP_PROXY_PORT} are already in use in the container.${NC}"
+        port_in_use=true
+    fi
+    
+    if [ "$port_in_use" = true ]; then
+        echo -e "${YELLOW}Attempting to stop existing MCP Inspector processes...${NC}"
+        ddev exec -s mcp-inspector pkill -f "@modelcontextprotocol/inspector" || true
+        sleep 2
+        
+        # Verify ports are now available
+        if ddev exec -s mcp-inspector netstat -tlnp 2>/dev/null | grep -q ":${MCP_PORT}\|:${MCP_PROXY_PORT}"; then
+            echo -e "${RED}Error: Ports are still in use after stopping processes.${NC}"
+            echo "Try running 'ddev mcp-stop' first, then try again."
+            return 1
+        fi
+    fi
+    
+    return 0
+}
 
-# If help is requested, show both our help and MCP Inspector help
-if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+# Check if help is requested
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
     show_usage
     echo ""
     echo -e "${BLUE}MCP Inspector CLI Help:${NC}"
-    npx @modelcontextprotocol/inspector --help 2>&1 || echo "Could not get MCP Inspector help"
+    ddev exec -s mcp-inspector npx @modelcontextprotocol/inspector --help 2>&1 || echo "Could not get MCP Inspector help"
     exit 0
 fi
 
-# Check if arguments provided
+# Check if MCP Inspector service is running
+if ! ddev exec -s mcp-inspector echo "MCP Inspector container is running" >/dev/null 2>&1; then
+    echo -e "${RED}Error: MCP Inspector service is not running. Try 'ddev restart'${NC}"
+    exit 1
+fi
+
+# Stop any existing MCP Inspector processes
+echo -e "${YELLOW}Stopping any existing MCP Inspector processes...${NC}"
+ddev exec -s mcp-inspector pkill -f "@modelcontextprotocol/inspector" || true
+sleep 2
+
+# Verify all processes are stopped
+if ddev exec -s mcp-inspector pgrep -f "@modelcontextprotocol/inspector" >/dev/null 2>&1; then
+    echo -e "${YELLOW}Some processes are still running. Forcing termination...${NC}"
+    ddev exec -s mcp-inspector pkill -9 -f "@modelcontextprotocol/inspector" || true
+    sleep 1
+fi
+
+# Check if ports are available
+check_ports || exit 1
+
+# Display MCP Inspector version
+echo -e "${BLUE}MCP Inspector version:${NC}"
+ddev exec -s mcp-inspector npx @modelcontextprotocol/inspector --version 2>&1 || echo "Could not determine version"
+
 if [ $# -eq 0 ]; then
-    show_usage
+    # Standalone mode
+    echo -e "${GREEN}Starting MCP Inspector in standalone mode...${NC}"
     echo ""
-    echo -e "${YELLOW}Starting MCP Inspector without a specific server...${NC}"
-    echo "You can connect to your MCP server manually through the web interface."
+    echo "Access the inspector at:"
+    echo "  http://localhost:${MCP_PORT} (Inspector UI)"
+    echo "  http://127.0.0.1:${MCP_PORT} (if localhost redirects)"
+    echo ""
+    echo -e "${BLUE}Note: You can connect to MCP servers manually through the web interface${NC}"
+    echo -e "${YELLOW}Press Ctrl+C to stop the inspector${NC}"
     echo ""
     
-    # Start inspector in standalone mode
-    echo -e "${GREEN}Starting MCP Inspector...${NC}"
-    echo -e "${BLUE}Note: Inspector will start on its default port, accessible via DDEV port mapping${NC}"
-    npx @modelcontextprotocol/inspector
+    # Start MCP Inspector in standalone mode
+    ddev exec -s mcp-inspector sh -c "
+        export HOST=${MCP_HOST}
+        export CLIENT_PORT=${MCP_PORT}
+        export SERVER_PORT=${MCP_PROXY_PORT}
+        echo 'Starting MCP Inspector with:'
+        echo '  UI Port: ${MCP_PORT}'
+        echo '  Proxy Port: ${MCP_PROXY_PORT}'
+        echo '  Host: ${MCP_HOST}'
+        echo ''
+        npx @modelcontextprotocol/inspector
+    "
 else
     # Start with specific MCP server command
     echo -e "${GREEN}Starting MCP Inspector with server command:${NC} $*"
     echo ""
-    echo -e "${YELLOW}Inspector will be available at:${NC}"
-    echo "  http://localhost:${MCP_PORT}"
-    echo "  https://${DDEV_SITENAME:-your-project}.${DDEV_TLD:-ddev.site}:${MCP_PORT}"
+    echo "Access the inspector at:"
+    echo "  http://localhost:${MCP_PORT} (Inspector UI)"
+    echo "  http://127.0.0.1:${MCP_PORT} (if localhost redirects)"
     echo ""
+    echo -e "${BLUE}Inspector UI (port ${MCP_PORT}) and Proxy (port ${MCP_PROXY_PORT}) starting...${NC}"
     echo -e "${YELLOW}Press Ctrl+C to stop the inspector${NC}"
     echo ""
     
-    # Try different approaches to start MCP Inspector
-    echo -e "${BLUE}Attempting to start MCP Inspector...${NC}"
-    
-    # First, let's try without host/port options (MCP Inspector might not support them)
-    echo -e "${BLUE}Trying: npx @modelcontextprotocol/inspector $*${NC}"
-    npx @modelcontextprotocol/inspector "$@"
+    # Start MCP Inspector with the provided server command
+    ddev exec -s mcp-inspector sh -c "
+        export HOST=${MCP_HOST}
+        export CLIENT_PORT=${MCP_PORT}
+        export SERVER_PORT=${MCP_PROXY_PORT}
+        echo 'Starting MCP Inspector with server command:'
+        echo '  Command: $*'
+        echo '  UI Port: ${MCP_PORT}'
+        echo '  Proxy Port: ${MCP_PROXY_PORT}'
+        echo '  Host: ${MCP_HOST}'
+        echo '  Working Directory: ${WORKDIR}'
+        echo ''
+        
+        # Set up error handling
+        trap 'echo "\nMCP Inspector exited with error code $?. Check server command for issues."' ERR
+        
+        # Validate server command exists
+        COMMAND_FIRST=$(echo "$*" | awk '{print $1}')
+        if ! command -v "$COMMAND_FIRST" >/dev/null 2>&1; then
+            echo "\033[0;31mError: Command '$COMMAND_FIRST' not found.\033[0m"
+            echo "Make sure the command exists and is in the PATH."
+            exit 1
+        fi
+        
+        cd "${WORKDIR}"
+        npx @modelcontextprotocol/inspector $*
+    " -- "$@"
 fi
