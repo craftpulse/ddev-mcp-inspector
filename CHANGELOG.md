@@ -5,14 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2025-02-16
+## [0.2.2] - 2025-06-27
+
+### Fixed
+- Fixed command argument passing to the container for server commands
+- Added proper shell command formatting with escaped newlines
+- Added check to prevent running the command from inside a container
+- Improved error handling in command scripts
+
+## [0.2.1] - 2025-06-27
 
 ### Fixed
 - Fixed "unbound variable" error when running `ddev mcp-inspector` without arguments
 - Added upgrade instructions for migrating from 0.1.x to 0.2.x
-- Improved error handling in command scripts
 
-## [0.2.0] - 2025-02-15
+## [0.2.0] - 2025-06-27
 
 ### Changed
 - **BREAKING CHANGE**: Complete architectural rewrite to dedicated Docker service
@@ -40,19 +47,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Resolves ERR_EMPTY_RESPONSE errors by ensuring MCP Inspector's proxy server properly binds to all interfaces and is accessible through DDEV's networking
 
-## [0.1.3] - 2025-01-27
+## [0.1.3] - 2025-06-26
 
 ### Added
 - Port 6277 exposure for MCP Inspector's internal proxy server
 - `MCP_INSPECTOR_PROXY_PORT` environment variable for proxy port configuration
 
-## [0.1.2] - 2025-01-27
+## [0.1.2] - 2025-06-26
 
 ### Fixed
 - Removed unsupported `--host` and `--port` CLI options that caused ERR_PARSE_ARGS_INVALID_OPTION_VALUE errors
 - Simplified command execution to use MCP Inspector's default behavior
 
-## [0.1.1] - 2025-01-27
+## [0.1.1] - 2025-06-26
 
 ### Fixed
 - Resolved MCP Inspector argument parsing error when running with server commands
@@ -60,7 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved error handling and debugging output for troubleshooting
 - Enhanced help functionality to show both local and MCP Inspector CLI help
 
-## [0.1.0] - 2025-01-27
+## [0.1.0] - 2025-06-26
 
 ### Added
 - Initial release of DDEV MCP Inspector Add-on
@@ -74,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `MCP_INSPECTOR_PORT` (default: 6274)
   - `MCP_INSPECTOR_HOST` (default: 0.0.0.0)
 
+[0.2.2]: https://github.com/craftpulse/ddev-mcp-inspector/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/craftpulse/ddev-mcp-inspector/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/craftpulse/ddev-mcp-inspector/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/craftpulse/ddev-mcp-inspector/compare/v0.1.2...v0.1.3

@@ -90,6 +90,13 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
     exit 0
 fi
 
+# Check if we're already inside a container
+if [ -f "/.dockerenv" ]; then
+    echo -e "${RED}Error: This command should be run from the host, not inside a container.${NC}"
+    echo "Please run 'ddev mcp-inspector' from your host terminal."
+    exit 1
+fi
+
 # Check if MCP Inspector service is running
 if ! ddev exec -s mcp-inspector echo "MCP Inspector container is running" >/dev/null 2>&1; then
     echo -e "${RED}Error: MCP Inspector service is not running. Try 'ddev restart'${NC}"
@@ -128,16 +135,16 @@ if [ $# -eq 0 ]; then
     echo ""
     
     # Start MCP Inspector in standalone mode
-    ddev exec -s mcp-inspector sh -c "
-        export HOST=${MCP_HOST}
-        export CLIENT_PORT=${MCP_PORT}
-        export SERVER_PORT=${MCP_PROXY_PORT}
-        echo 'Starting MCP Inspector with:'
-        echo '  UI Port: ${MCP_PORT}'
-        echo '  Proxy Port: ${MCP_PROXY_PORT}'
-        echo '  Host: ${MCP_HOST}'
-        echo ''
-        npx @modelcontextprotocol/inspector
+    ddev exec -s mcp-inspector sh -c "set -e; \
+        export HOST=${MCP_HOST}; \
+        export CLIENT_PORT=${MCP_PORT}; \
+        export SERVER_PORT=${MCP_PROXY_PORT}; \
+        echo 'Starting MCP Inspector with:'; \
+        echo '  UI Port: ${MCP_PORT}'; \
+        echo '  Proxy Port: ${MCP_PROXY_PORT}'; \
+        echo '  Host: ${MCP_HOST}'; \
+        echo ''; \
+        npx @modelcontextprotocol/inspector \
     "
 else
     # Start with specific MCP server command
@@ -151,35 +158,41 @@ else
     echo -e "${YELLOW}Press Ctrl+C to stop the inspector${NC}"
     echo ""
     
+    # Prepare command arguments as a properly quoted string
+    ARGS_STRING=""
+    for arg in "$@"; do
+        ARGS_STRING="$ARGS_STRING '$(echo "$arg" | sed "s/'/\\'/g")'" 
+    done
+    
     # Start MCP Inspector with the provided server command
-    ddev exec -s mcp-inspector sh -c "
-        export HOST=${MCP_HOST}
-        export CLIENT_PORT=${MCP_PORT}
-        export SERVER_PORT=${MCP_PROXY_PORT}
-        echo 'Starting MCP Inspector with server command:'
-        echo '  Command: $*'
-        echo '  UI Port: ${MCP_PORT}'
-        echo '  Proxy Port: ${MCP_PROXY_PORT}'
-        echo '  Host: ${MCP_HOST}'
-        echo '  Working Directory: ${WORKDIR}'
-        echo ''
-        
+    ddev exec -s mcp-inspector sh -c "set -e; \
+        export HOST=${MCP_HOST}; \
+        export CLIENT_PORT=${MCP_PORT}; \
+        export SERVER_PORT=${MCP_PROXY_PORT}; \
+        echo 'Starting MCP Inspector with server command:'; \
+        echo '  Command: $ARGS_STRING'; \
+        echo '  UI Port: ${MCP_PORT}'; \
+        echo '  Proxy Port: ${MCP_PROXY_PORT}'; \
+        echo '  Host: ${MCP_HOST}'; \
+        echo '  Working Directory: ${WORKDIR}'; \
+        echo ''; \
+        \
         # Set up error handling
-        trap 'echo "\nMCP Inspector exited with error code $?. Check server command for issues."' ERR
-        
+        trap 'echo "\nMCP Inspector exited with error code \$?. Check server command for issues."' ERR; \
+        \
         # Validate server command exists
-        COMMAND_FIRST=$(echo "$*" | awk '{print $1}')
-        if [ -z "$COMMAND_FIRST" ]; then
-            echo "\033[0;31mError: No command specified.\033[0m"
-            echo "Please provide a valid server command."
-            exit 1
-        elif ! command -v "$COMMAND_FIRST" >/dev/null 2>&1; then
-            echo "\033[0;31mError: Command '$COMMAND_FIRST' not found.\033[0m"
-            echo "Make sure the command exists and is in the PATH."
-            exit 1
-        fi
-        
-        cd "${WORKDIR}"
-        npx @modelcontextprotocol/inspector $*
-    " -- "$@"
+        COMMAND_FIRST=\$(echo $ARGS_STRING | awk '{print \$1}' | tr -d "'"); \
+        if [ -z "\$COMMAND_FIRST" ]; then \
+            echo "\033[0;31mError: No command specified.\033[0m"; \
+            echo "Please provide a valid server command."; \
+            exit 1; \
+        elif ! command -v "\$COMMAND_FIRST" >/dev/null 2>&1; then \
+            echo "\033[0;31mError: Command '\$COMMAND_FIRST' not found.\033[0m"; \
+            echo "Make sure the command exists and is in the PATH."; \
+            exit 1; \
+        fi; \
+        \
+        cd "${WORKDIR}"; \
+        npx @modelcontextprotocol/inspector $ARGS_STRING \
+    "
 fi
