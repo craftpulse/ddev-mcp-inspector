@@ -25,14 +25,16 @@ MCP_HOST=${MCP_INSPECTOR_HOST:-0.0.0.0}
 WORKDIR="/workspace"
 
 # Parse command line arguments for workdir
-for arg in "$@"; do
-    if [[ "$arg" == --workdir=* ]]; then
-        WORKDIR="${arg#*=}"
-        # Remove this argument from the arguments list
-        set -- "${@/$arg/}"
-        break
-    fi
-done
+if [ $# -gt 0 ]; then
+    for arg in "$@"; do
+        if [[ "$arg" == --workdir=* ]]; then
+            WORKDIR="${arg#*=}"
+            # Remove this argument from the arguments list
+            set -- "${@/$arg/}"
+            break
+        fi
+    done
+fi
 
 # Function to show usage
 show_usage() {
@@ -167,7 +169,11 @@ else
         
         # Validate server command exists
         COMMAND_FIRST=$(echo "$*" | awk '{print $1}')
-        if ! command -v "$COMMAND_FIRST" >/dev/null 2>&1; then
+        if [ -z "$COMMAND_FIRST" ]; then
+            echo "\033[0;31mError: No command specified.\033[0m"
+            echo "Please provide a valid server command."
+            exit 1
+        elif ! command -v "$COMMAND_FIRST" >/dev/null 2>&1; then
             echo "\033[0;31mError: Command '$COMMAND_FIRST' not found.\033[0m"
             echo "Make sure the command exists and is in the PATH."
             exit 1

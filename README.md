@@ -20,6 +20,39 @@ ddev restart
 
 After installation, make sure to commit the `.ddev` directory to version control.
 
+## Upgrading from 0.1.x to 0.2.x
+
+Version 0.2.x introduces a breaking change with a new architecture using a dedicated Docker service. If you're upgrading from 0.1.x, follow these steps:
+
+1. Remove the old add-on:
+   ```bash
+   ddev add-on remove mcp-inspector
+   ```
+
+2. Clean up any remaining files:
+   ```bash
+   rm -f .ddev/docker-compose.mcp-inspector.yaml
+   rm -f .ddev/commands/web/mcp-inspector
+   rm -f .ddev/commands/web/mcp-stop
+   ```
+
+3. Install the new version:
+   ```bash
+   ddev add-on get craftpulse/ddev-mcp-inspector
+   ```
+
+4. Restart DDEV:
+   ```bash
+   ddev restart
+   ```
+
+5. Verify the service is running as a dedicated container:
+   ```bash
+   ddev describe
+   ```
+   
+You should see a separate "mcp-inspector" service listed in the output.
+
 ## Usage
 
 | Command | Description |
