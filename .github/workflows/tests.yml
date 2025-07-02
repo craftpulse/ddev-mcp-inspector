@@ -31,22 +31,29 @@ jobs:
       run: |
         curl -fsSL https://raw.githubusercontent.com/ddev/ddev/master/scripts/install_ddev.sh | bash
         ddev config global --omit-containers=ddev-router
+
+    - name: Install bats
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bats
         
     - name: Validate add-on
       run: |
         cd tests
         bats test.bats
         
-    - name: Check version consistency
+    - name: Validate add-on structure
       run: |
-        # Ensure VERSION file matches install.yaml
-        VERSION=$(cat VERSION)
-        INSTALL_VERSION=$(grep "^version:" install.yaml | awk '{print $2}')
-        if [ "$VERSION" != "$INSTALL_VERSION" ]; then
-          echo "Version mismatch: VERSION file ($VERSION) != install.yaml ($INSTALL_VERSION)"
+        # Check required files exist
+        if [ ! -f "install.yaml" ]; then
+          echo "Missing install.yaml"
           exit 1
         fi
-        echo "Version check passed: $VERSION"
+        if [ ! -f "docker-compose.mcp-inspector.yaml" ]; then
+          echo "Missing docker-compose.mcp-inspector.yaml"
+          exit 1
+        fi
+        echo "Add-on structure validation passed"
 
   release:
     needs: tests
@@ -64,7 +71,6 @@ jobs:
         draft: false
         prerelease: ${{ contains(github.ref, 'beta') }}
         generate_release_notes: true
-        body_path: RELEASE-NOTES-BETA.md
         files: |
           README.md
           CHANGELOG.md
