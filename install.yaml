@@ -1,98 +1,13 @@
-name: mcp-inspector
-version: 1.0.0-beta.2
+#ddev-generated
+name: ddev-mcp-inspector
 
-# Version constraint for DDEV compatibility
-ddev_version_constraint: '>= v1.23.0'
-
-# Files to copy into .ddev directory
 project_files:
   - docker-compose.mcp-inspector.yaml
-  - mcp-inspector-src/
   - commands/host/mcp-inspector
-  - commands/web/mcp-connect
+  - .env.mcp-inspector.example
 
-# Pre-installation validation and setup
-pre_install_actions:
-  - |
-    #ddev-description:Display beta warning
-    cat <<'EOF'
-    
-    ╔══════════════════════════════════════════════════════════════╗
-    ║                       BETA WARNING                           ║
-    ║                                                              ║
-    ║  You are installing DDEV MCP Inspector v1.0.0-beta.1         ║
-    ║                                                              ║
-    ║  This is a BETA release and may contain bugs.                ║
-    ║  Please report issues at:                                    ║
-    ║  https://github.com/craftpulse/ddev-mcp-inspector/issues     ║
-    ║                                                              ║
-    ║  Not recommended for production use.                         ║
-    ╚══════════════════════════════════════════════════════════════╝
-    
-    EOF
-    #ddev-description:Check DDEV version compatibility
-    if ! (ddev version | grep -q "ddev version") ; then
-      echo "Failed to determine DDEV version" && exit 1
-    fi
-  - |
-    #ddev-description:Create MCP Inspector source directory
-    mkdir -p mcp-inspector-src
-    cat > mcp-inspector-src/package.json <<'EOF'
-    {
-      "name": "mcp-inspector-ddev",
-      "version": "1.0.0-beta.1",
-      "type": "module",
-      "scripts": {
-        "build": "echo 'Building MCP Inspector...'",
-        "start": "npx @modelcontextprotocol/inspector"
-      },
-      "dependencies": {
-        "@modelcontextprotocol/inspector": "^0.3.0"
-      }
-    }
-    EOF
-  - |
-    #ddev-description:Configure additional hostnames for MCP Inspector
-    if ! grep -q "mcp-inspector" .ddev/config.yaml 2>/dev/null; then
-      ddev config --additional-hostnames="mcp-inspector,mcp-proxy" || true
-    fi
-
-# Post-installation configuration
 post_install_actions:
   - |
-    #ddev-description:Show MCP Inspector access information
-    cat <<EOF
-    
-    🚀 MCP Inspector BETA has been installed!
-    
-    Version: 1.0.0-beta.1
-    
-    Access the MCP Inspector at:
-    - UI: https://${DDEV_SITENAME}.ddev.site:6274
-    - UI: http://${DDEV_SITENAME}.ddev.site:6274
-    - Proxy: https://${DDEV_SITENAME}.ddev.site:6277
-    
-    Alternative URLs:
-    - https://mcp-inspector.${DDEV_SITENAME}.ddev.site
-    
-    To start using MCP Inspector:
-    1. Run 'ddev restart' to start the service
-    2. Wait 45-60 seconds for first startup
-    3. Use 'ddev mcp-inspector' to get connection info
-    4. Use 'ddev mcp-connect <server-command>' to test MCP servers
-    
-    ⚠️  BETA NOTE: Please report issues at:
-    https://github.com/craftpulse/ddev-mcp-inspector/issues
-    
-    EOF
-  - |
-    #ddev-description:Set executable permissions on commands
-    chmod +x commands/host/mcp-inspector 2>/dev/null || true
-    chmod +x commands/web/mcp-connect 2>/dev/null || true
-
-# Uninstall actions
-removal_actions:
-  - |
-    #ddev-description:Remove MCP Inspector configuration
-    rm -rf mcp-inspector-src
-    echo "MCP Inspector BETA has been removed. Run 'ddev restart' to complete the removal."
+    if [ ! -f .ddev/.env.mcp-inspector ]; then
+      cp .ddev/.env.mcp-inspector.example .ddev/.env.mcp-inspector
+    fi
