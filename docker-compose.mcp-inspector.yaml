@@ -13,32 +13,41 @@ services:
     environment:
       - CLIENT_PORT=6274
       - SERVER_PORT=6277
+      - DANGEROUSLY_OMIT_AUTH=true
+      - HOST=0.0.0.0
+      - MCP_SERVER_REQUEST_TIMEOUT=10000
+      - MCP_REQUEST_TIMEOUT_RESET_ON_PROGRESS=true
+      - MCP_REQUEST_MAX_TOTAL_TIMEOUT=60000
       - VIRTUAL_HOST=${DDEV_HOSTNAME}
       - HTTP_EXPOSE=6274:6274,6277:6277
       - HTTPS_EXPOSE=6275:6274,6278:6277
+    env_file:
+      - .ddev/.env.mcp-inspector
     expose:
       - "6274"
       - "6277"
     volumes:
       - ".:/mnt/ddev_config:ro"
-      - "./mcp-servers:/app/mcp-servers"
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 100M
     working_dir: /app
     command: >
       sh -c "
-        apk add --no-cache git &&
+        apk add --no-cache git curl &&
         npm install -g @modelcontextprotocol/inspector &&
         echo 'MCP Inspector is starting...' &&
-        echo 'Client UI: https://${DDEV_HOSTNAME}:6275' &&
-        echo 'Proxy Server: https://${DDEV_HOSTNAME}:6278' &&
-        npx @modelcontextprotocol/inspector --version &&
+        echo 'Client UI available at: https://${DDEV_HOSTNAME}:6275' &&
+        echo 'Proxy Server available at: https://${DDEV_HOSTNAME}:6278' &&
         exec npx @modelcontextprotocol/inspector
       "
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:6274"]
+      test: ["CMD", "curl", "-f", "http://localhost:6274/health", "||", "curl", "-f", "http://localhost:6274"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 90s
     networks:
       - default
       - ddev_default

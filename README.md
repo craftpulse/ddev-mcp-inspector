@@ -22,22 +22,24 @@ ddev restart
 ### Access MCP Inspector
 
 After installation, MCP Inspector is available at:
-- **UI**: `https://<projectname>.ddev.site:6274`
-- **Proxy**: `https://<projectname>.ddev.site:6277`
-
-Alternative URL:
-- `https://mcp-inspector.<projectname>.ddev.site`
+- **Client UI**: `https://<projectname>.ddev.site:6275`
+- **Proxy Server**: `https://<projectname>.ddev.site:6278`
 
 ### Commands
 
-Show connection information:
+Open MCP Inspector in browser:
 ```bash
 ddev mcp-inspector
 ```
 
-Connect to an MCP server:
+Check service status:
 ```bash
-ddev mcp-connect npx @modelcontextprotocol/server-everything
+ddev mcp-inspector status
+```
+
+View service logs:
+```bash
+ddev mcp-inspector logs
 ```
 
 ### Testing MCP Servers
@@ -51,8 +53,8 @@ ddev mcp-connect npx @modelcontextprotocol/server-everything
 ### Container Communication
 
 From within other DDEV containers, you can connect to:
-- MCP Inspector UI: `http://mcp-inspector:6274`
-- MCP Proxy: `http://mcp-inspector:6277`
+- MCP Inspector Client UI: `http://mcp-inspector:6274`
+- MCP Proxy Server: `http://mcp-inspector:6277`
 
 ## Examples
 
@@ -81,10 +83,10 @@ In the MCP Inspector UI:
 
 - Runs in a dedicated container: `ddev-<projectname>-mcp-inspector`
 - Based on Node.js 22 Alpine image
-- Exposes ports 6274 (UI) and 6277 (Proxy)
+- Exposes ports 6274 (Client UI) and 6277 (Proxy Server)
+- HTTPS access via ports 6275 (Client UI) and 6278 (Proxy Server)
 - Includes health checks for reliability
-- Supports both HTTP and HTTPS access
-- Persistent data volume for configurations
+- Supports authentication bypass for development
 
 ## Configuration
 
