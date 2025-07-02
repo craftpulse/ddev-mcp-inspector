@@ -2,28 +2,70 @@ name: tests
 on:
   pull_request:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main, master, beta, develop ]
+    tags: 
+      - 'v*.*.*'
+      - 'v*.*.*-beta.*'
 
 permissions:
   contents: read
 
 jobs:
   tests:
+    defaults:
+      run:
+        shell: bash
+
     strategy:
       matrix:
         ddev_version: [stable, HEAD]
+        os: [ubuntu-latest]
       fail-fast: false
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up DDEV
-        uses: ddev/github-action-setup-ddev@v1
-        with:
-          ddev_version: ${{ matrix.ddev_version }}
-      - name: Run tests
-        run: |
-          cd tests
-          bats test.bats
+    - uses: actions/checkout@v4
+    
+    - name: Set up DDEV
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/ddev/ddev/master/scripts/install_ddev.sh | bash
+        ddev config global --omit-containers=ddev-router
+        
+    - name: Validate add-on
+      run: |
+        cd tests
+        bats test.bats
+        
+    - name: Check version consistency
+      run: |
+        # Ensure VERSION file matches install.yaml
+        VERSION=$(cat VERSION)
+        INSTALL_VERSION=$(grep "^version:" install.yaml | awk '{print $2}')
+        if [ "$VERSION" != "$INSTALL_VERSION" ]; then
+          echo "Version mismatch: VERSION file ($VERSION) != install.yaml ($INSTALL_VERSION)"
+          exit 1
+        fi
+        echo "Version check passed: $VERSION"
+
+  release:
+    needs: tests
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        draft: false
+        prerelease: ${{ contains(github.ref, 'beta') }}
+        generate_release_notes: true
+        body_path: RELEASE-NOTES-BETA.md
+        files: |
+          README.md
+          CHANGELOG.md
+          LICENSE

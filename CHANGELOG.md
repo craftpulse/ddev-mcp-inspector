@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-beta.1] - 2025-01-02
+
 ### Added
-- Initial release of DDEV MCP Inspector add-on
+- Initial beta release of DDEV MCP Inspector add-on
 - Docker container configuration for MCP Inspector
 - Support for both HTTP and HTTPS access
 - `ddev mcp-inspector` command for connection information
@@ -30,24 +32,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive README with examples
 - Contributing guidelines
 - MIT License
+- Troubleshooting guide
+- Quick start guide
+- Example MCP server implementation
+
+### Known Issues (Beta)
+- First container start may take 45-60 seconds for npm installation
+- Health checks may occasionally timeout on slower systems
+- Some MCP server types may require additional configuration
 
 ## [1.0.0] - TBD
 
-### Added
-- First stable release
-- Full compatibility with DDEV v1.23.0+
-- Production-ready health checks and timeouts
-- Complete test coverage
-
-### Fixed
-- Container startup timeout issues
-- Port exposure for both HTTP and HTTPS
-- Network connectivity between containers
-
-### Security
-- No security vulnerabilities in dependencies
-- Proper container isolation
-- SSL/TLS support through DDEV router
+### Planned for Stable Release
+- Performance optimizations for faster startup
+- Enhanced error handling and recovery
+- Additional MCP server examples
+- Automated testing for more MCP server types
+- Improved health check reliability
 
 ## Version Guidelines
 
@@ -55,6 +56,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MAJOR version: Incompatible changes, DDEV version requirement changes
 - MINOR version: New features, backwards compatible
 - PATCH version: Bug fixes, documentation updates
+
+### Beta Releases
+- Beta versions use the format: X.Y.Z-beta.N
+- Beta releases may have breaking changes between versions
+- Not recommended for production use
+- Feedback and bug reports are highly encouraged
 
 ### Release Checklist
 - [ ] All tests passing
@@ -66,5 +73,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/craftpulse/ddev-mcp-inspector/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/craftpulse/ddev-mcp-inspector/releases/tag/v1.0.0
+[Unreleased]: https://github.com/craftpulse/ddev-mcp-inspector/compare/1.0.0-beta.1...HEAD
+[1.0.0-beta.1]: https://github.com/craftpulse/ddev-mcp-inspector/releases/tag/1.0.0-beta.1
