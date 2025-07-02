@@ -1,0 +1,13 @@
+#ddev-generated
+name: ddev-mcp-inspector
+
+project_files:
+  - docker-compose.mcp-inspector.yaml
+  - commands/host/mcp-inspector
+  - .env.mcp-inspector.example
+
+post_install_actions:
+  - |
+    if [ ! -f .ddev/.env.mcp-inspector ]; then
+      cp .ddev/.env.mcp-inspector.example .ddev/.env.mcp-inspector
+    fi

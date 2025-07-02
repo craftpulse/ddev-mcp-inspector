@@ -1,0 +1,29 @@
+name: tests
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    strategy:
+      matrix:
+        ddev_version: [stable, HEAD]
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up DDEV
+        uses: ddev/github-action-setup-ddev@v1
+        with:
+          ddev_version: ${{ matrix.ddev_version }}
+      - name: Run tests
+        run: |
+          cd tests
+          bats test.bats

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+## Description: Open MCP Inspector in browser
+## Usage: mcp-inspector
+## Example: "ddev mcp-inspector"
+
+DDEV_HOSTNAME="${DDEV_HOSTNAME:-${DDEV_SITENAME}.${DDEV_TLD:-ddev.site}}"
+HTTPS_PORT="${HTTPS_PORT:-6275}"
+
+echo "Opening MCP Inspector at https://${DDEV_HOSTNAME}:${HTTPS_PORT}"
+
+case $OSTYPE in
+  linux*)
+    xdg-open "https://${DDEV_HOSTNAME}:${HTTPS_PORT}" >/dev/null 2>&1 &
+    ;;
+  darwin*)
+    open "https://${DDEV_HOSTNAME}:${HTTPS_PORT}"
+    ;;
+  msys*|cygwin*|mingw*)
+    start "https://${DDEV_HOSTNAME}:${HTTPS_PORT}"
+    ;;
+esac

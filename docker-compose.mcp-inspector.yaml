@@ -1,0 +1,48 @@
+#ddev-generated
+services:
+  mcp-inspector:
+    container_name: ddev-${DDEV_SITENAME}-mcp-inspector
+    image: node:22-alpine
+    restart: "no"
+    user: "${DDEV_UID}:${DDEV_GID}"
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.platform: ddev
+      com.ddev.app-type: ${DDEV_PROJECT_TYPE}
+      com.ddev.approot: ${DDEV_APPROOT}
+    environment:
+      - CLIENT_PORT=6274
+      - SERVER_PORT=6277
+      - VIRTUAL_HOST=${DDEV_HOSTNAME}
+      - HTTP_EXPOSE=6274:6274,6277:6277
+      - HTTPS_EXPOSE=6275:6274,6278:6277
+    expose:
+      - "6274"
+      - "6277"
+    volumes:
+      - ".:/mnt/ddev_config:ro"
+      - "./mcp-servers:/app/mcp-servers"
+    working_dir: /app
+    command: >
+      sh -c "
+        apk add --no-cache git &&
+        npm install -g @modelcontextprotocol/inspector &&
+        echo 'MCP Inspector is starting...' &&
+        echo 'Client UI: https://${DDEV_HOSTNAME}:6275' &&
+        echo 'Proxy Server: https://${DDEV_HOSTNAME}:6278' &&
+        npx @modelcontextprotocol/inspector --version &&
+        exec npx @modelcontextprotocol/inspector
+      "
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:6274"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - default
+      - ddev_default
+
+networks:
+  ddev_default:
+    external: true
