@@ -1,5 +1,5 @@
 name: mcp-inspector
-version: 1.0.0-beta.1
+version: 1.0.0-beta.2
 
 # Version constraint for DDEV compatibility
 ddev_version_constraint: '>= v1.23.0'
@@ -20,23 +20,16 @@ pre_install_actions:
     ╔══════════════════════════════════════════════════════════════╗
     ║                       BETA WARNING                           ║
     ║                                                              ║
-    ║  You are installing DDEV MCP Inspector v1.0.0-beta.1        ║
+    ║  You are installing DDEV MCP Inspector v1.0.0-beta.1         ║
     ║                                                              ║
-    ║  This is a BETA release and may contain bugs.               ║
+    ║  This is a BETA release and may contain bugs.                ║
     ║  Please report issues at:                                    ║
-    ║  https://github.com/craftpulse/ddev-mcp-inspector/issues    ║
+    ║  https://github.com/craftpulse/ddev-mcp-inspector/issues     ║
     ║                                                              ║
     ║  Not recommended for production use.                         ║
     ╚══════════════════════════════════════════════════════════════╝
     
     EOF
-    read -p "Continue with beta installation? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-      echo "Installation cancelled."
-      exit 1
-    fi
-  - |
     #ddev-description:Check DDEV version compatibility
     if ! (ddev version | grep -q "ddev version") ; then
       echo "Failed to determine DDEV version" && exit 1
