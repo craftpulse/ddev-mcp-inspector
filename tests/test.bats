@@ -26,8 +26,17 @@ teardown() {
   ddev add-on get ${DIR}
   ddev restart
   
+  # Wait for services to be ready
+  sleep 10
+  
   # Check that the mcp-inspector service is running
-  ddev exec -s mcp-inspector true
+  echo "# Checking if mcp-inspector service exists..."
+  ddev exec -s mcp-inspector true || {
+    echo "# mcp-inspector service not found, checking available services:"
+    docker ps --format "table {{.Names}}\t{{.Status}}"
+    ddev describe
+    exit 1
+  }
 }
 
 @test "mcp inspector responds" {

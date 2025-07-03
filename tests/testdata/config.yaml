@@ -1,0 +1,17 @@
+name: test-ddev-mcp-inspector
+type: php
+docroot: ""
+php_version: "8.2"
+webserver_type: nginx-fpm
+router_http_port: "80"
+router_https_port: "443"
+xdebug_enabled: false
+additional_hostnames: []
+additional_fqdns: []
+mariadb_version: "10.11"
+mysql_version: ""
+postgres_version: ""
+use_dns_when_possible: true
+composer_version: "2"
+web_environment: []
+nodejs_version: "18"

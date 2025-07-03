@@ -9,5 +9,8 @@ project_files:
 post_install_actions:
   - |
     if [ ! -f .ddev/.env.mcp-inspector ]; then
-      cp .ddev/.env.mcp-inspector.example .ddev/.env.mcp-inspector
+      cp .env.mcp-inspector.example .ddev/.env.mcp-inspector
+      echo "# Created .ddev/.env.mcp-inspector from example"
+    else
+      echo "# .ddev/.env.mcp-inspector already exists"
     fi
