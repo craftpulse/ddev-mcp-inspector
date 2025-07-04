@@ -15,6 +15,8 @@ services:
       DANGEROUSLY_OMIT_AUTH: "true"
       HOST: "0.0.0.0"
       ALLOWED_ORIGINS: "*"
+      MCP_DISABLE_AUTH: "true"
+      NO_AUTH: "true"
       VIRTUAL_HOST: ${DDEV_HOSTNAME}
       HTTP_EXPOSE: "6274:6274,6277:6277"
       HTTPS_EXPOSE: "6275:6274,6277:6277"
@@ -33,13 +35,17 @@ services:
         apk add --no-cache git &&
         echo 'Installing MCP Inspector...' &&
         npm install -g @modelcontextprotocol/inspector@latest &&
+        echo 'Installed version:' &&
+        npm list -g @modelcontextprotocol/inspector &&
         echo 'Environment variables:' &&
         echo CLIENT_PORT=$$CLIENT_PORT &&
         echo SERVER_PORT=$$SERVER_PORT &&
         echo HOST=$$HOST &&
         echo DANGEROUSLY_OMIT_AUTH=$$DANGEROUSLY_OMIT_AUTH &&
+        echo MCP_DISABLE_AUTH=$$MCP_DISABLE_AUTH &&
+        echo NO_AUTH=$$NO_AUTH &&
         echo ALLOWED_ORIGINS=$$ALLOWED_ORIGINS &&
-        echo 'Starting MCP Inspector...' &&
+        echo 'Starting MCP Inspector with verbose output...' &&
         exec npx @modelcontextprotocol/inspector
       "
     healthcheck:
