@@ -14,8 +14,8 @@ services:
       SERVER_PORT: "6277"
       DANGEROUSLY_OMIT_AUTH: "true"
       HOST: "0.0.0.0"
-      ALLOWED_ORIGINS: "https://${DDEV_HOSTNAME}:6275,https://${DDEV_HOSTNAME}:6277,http://localhost:6274,http://127.0.0.1:6274,http://localhost:6277,http://127.0.0.1:6277"
-      MCP_PROXY_FULL_ADDRESS: "https://${DDEV_HOSTNAME}:6277"
+      ALLOWED_ORIGINS: "https://${DDEV_SITENAME}.${DDEV_TLD}:6275,https://${DDEV_SITENAME}.${DDEV_TLD}:6277,http://localhost:6274,http://127.0.0.1:6274,http://localhost:6277,http://127.0.0.1:6277"
+      MCP_PROXY_FULL_ADDRESS: "https://${DDEV_SITENAME}.${DDEV_TLD}:6277"
       MCP_SERVER_REQUEST_TIMEOUT: "10000"
       MCP_REQUEST_TIMEOUT_RESET_ON_PROGRESS: "true"
       MCP_REQUEST_MAX_TOTAL_TIMEOUT: "60000"
@@ -45,10 +45,11 @@ services:
         echo SERVER_PORT=$$SERVER_PORT &&
         echo HOST=$$HOST &&
         echo DANGEROUSLY_OMIT_AUTH=$$DANGEROUSLY_OMIT_AUTH &&
-        echo MCP_DISABLE_AUTH=$$MCP_DISABLE_AUTH &&
-        echo NO_AUTH=$$NO_AUTH &&
         echo ALLOWED_ORIGINS=$$ALLOWED_ORIGINS &&
         echo MCP_PROXY_FULL_ADDRESS=$$MCP_PROXY_FULL_ADDRESS &&
+        echo MCP_SERVER_REQUEST_TIMEOUT=$$MCP_SERVER_REQUEST_TIMEOUT &&
+        echo MCP_REQUEST_TIMEOUT_RESET_ON_PROGRESS=$$MCP_REQUEST_TIMEOUT_RESET_ON_PROGRESS &&
+        echo MCP_REQUEST_MAX_TOTAL_TIMEOUT=$$MCP_REQUEST_MAX_TOTAL_TIMEOUT &&
         echo MCP_AUTO_OPEN_ENABLED=$$MCP_AUTO_OPEN_ENABLED &&
         echo 'Starting MCP Inspector with verbose output...' &&
         exec npx @modelcontextprotocol/inspector
