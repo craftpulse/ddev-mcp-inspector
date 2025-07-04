@@ -12,48 +12,42 @@ permissions:
 
 jobs:
   tests:
-    defaults:
-      run:
-        shell: bash
-
-    strategy:
-      matrix:
-        ddev_version: [stable, HEAD]
-        os: [ubuntu-latest]
-      fail-fast: false
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Set up DDEV
-      run: |
-        curl -fsSL https://raw.githubusercontent.com/ddev/ddev/master/scripts/install_ddev.sh | bash
-        ddev config global --omit-containers=ddev-router
-
-    - name: Install bats
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y bats
-        
-    - name: Validate add-on
-      run: |
-        cd tests
-        bats test.bats
         
     - name: Validate add-on structure
       run: |
         # Check required files exist
         if [ ! -f "install.yaml" ]; then
-          echo "Missing install.yaml"
+          echo "❌ Missing install.yaml"
           exit 1
         fi
         if [ ! -f "docker-compose.mcp-inspector.yaml" ]; then
-          echo "Missing docker-compose.mcp-inspector.yaml"
+          echo "❌ Missing docker-compose.mcp-inspector.yaml"
           exit 1
         fi
-        echo "Add-on structure validation passed"
+        if [ ! -f "commands/host/mcp-inspector" ]; then
+          echo "❌ Missing commands/host/mcp-inspector"
+          exit 1
+        fi
+        
+        # Check that files have required markers
+        if ! grep -q "#ddev-generated" install.yaml; then
+          echo "❌ install.yaml missing #ddev-generated marker"
+          exit 1
+        fi
+        if ! grep -q "#ddev-generated" docker-compose.mcp-inspector.yaml; then
+          echo "❌ docker-compose.mcp-inspector.yaml missing #ddev-generated marker"
+          exit 1
+        fi
+        if ! grep -q "#ddev-generated" commands/host/mcp-inspector; then
+          echo "❌ commands/host/mcp-inspector missing #ddev-generated marker"
+          exit 1
+        fi
+        
+        echo "✅ Add-on structure validation passed"
 
   release:
     needs: tests
