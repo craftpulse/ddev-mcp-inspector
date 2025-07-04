@@ -11,16 +11,16 @@ services:
       com.ddev.approot: ${DDEV_APPROOT}
     environment:
       CLIENT_PORT: "6274"
-      SERVER_PORT: "6278"
+      SERVER_PORT: "6277"
       DANGEROUSLY_OMIT_AUTH: "true"
       HOST: "0.0.0.0"
       ALLOWED_ORIGINS: "*"
       VIRTUAL_HOST: ${DDEV_HOSTNAME}
-      HTTP_EXPOSE: "6274:6274,6278:6278"
-      HTTPS_EXPOSE: "6275:6274,6278:6278"
+      HTTP_EXPOSE: "6274:6274,6277:6277"
+      HTTPS_EXPOSE: "6275:6274,6277:6278"
     expose:
       - "6274"
-      - "6278"
+      - "6277"
     volumes:
       - ".:/mnt/ddev_config:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
