@@ -17,7 +17,7 @@ services:
       ALLOWED_ORIGINS: "*"
       VIRTUAL_HOST: ${DDEV_HOSTNAME}
       HTTP_EXPOSE: "6274:6274,6277:6277"
-      HTTPS_EXPOSE: "6275:6274,6277:6278"
+      HTTPS_EXPOSE: "6275:6274,6277:6277"
     expose:
       - "6274"
       - "6277"
