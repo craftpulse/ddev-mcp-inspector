@@ -47,7 +47,7 @@ jobs:
           exit 1
         fi
         
-        echo "✅ Add-on structure validation passed"
+        echo "✅ Add-on structure validation passed - all required files found"
 
   release:
     needs: tests
