@@ -48,6 +48,8 @@ services:
         echo MCP_DISABLE_AUTH=$$MCP_DISABLE_AUTH &&
         echo NO_AUTH=$$NO_AUTH &&
         echo ALLOWED_ORIGINS=$$ALLOWED_ORIGINS &&
+        echo MCP_PROXY_FULL_ADDRESS=$$MCP_PROXY_FULL_ADDRESS &&
+        echo MCP_AUTO_OPEN_ENABLED=$$MCP_AUTO_OPEN_ENABLED &&
         echo 'Starting MCP Inspector with verbose output...' &&
         exec npx @modelcontextprotocol/inspector
       "
