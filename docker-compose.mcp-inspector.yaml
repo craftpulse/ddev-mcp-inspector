@@ -11,13 +11,10 @@ services:
       com.ddev.approot: ${DDEV_APPROOT}
     environment:
       CLIENT_PORT: "6274"
-      SERVER_PORT: "6277"
+      SERVER_PORT: "6277" 
       DANGEROUSLY_OMIT_AUTH: "true"
       HOST: "0.0.0.0"
-      ALLOWED_ORIGINS: "https://${DDEV_HOSTNAME}:6275,https://${DDEV_HOSTNAME}:6278,http://localhost:6274,http://localhost:6277,http://mcp-inspector:6274,http://mcp-inspector:6277,https://${DDEV_HOSTNAME}:6277"
-      MCP_SERVER_REQUEST_TIMEOUT: "10000"
-      MCP_REQUEST_TIMEOUT_RESET_ON_PROGRESS: "true"
-      MCP_REQUEST_MAX_TOTAL_TIMEOUT: "60000"
+      ALLOWED_ORIGINS: "*"
       VIRTUAL_HOST: ${DDEV_HOSTNAME}
       HTTP_EXPOSE: "6274:6274,6277:6277"
       HTTPS_EXPOSE: "6275:6274,6278:6277"
