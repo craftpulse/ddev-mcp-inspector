@@ -1,0 +1,7 @@
+name: mcp-inspector
+
+project_files:
+  - docker-compose.mcp-inspector.yaml
+  - commands/host/mcp-inspector
+
+ddev_version_constraint: '>= v1.24.3'

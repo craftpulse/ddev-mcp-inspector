@@ -1,0 +1,68 @@
+#ddev-generated
+services:
+  mcp-inspector:
+    container_name: ddev-${DDEV_SITENAME}-mcp-inspector
+    image: node:22-alpine
+    restart: "no"
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.platform: ddev
+      com.ddev.app-type: ${DDEV_PROJECT_TYPE}
+      com.ddev.approot: ${DDEV_APPROOT}
+    environment:
+      CLIENT_PORT: "6274"
+      SERVER_PORT: "6277"
+      DANGEROUSLY_OMIT_AUTH: "true"
+      HOST: "0.0.0.0"
+      MCP_PROXY_FULL_ADDRESS: "https://${DDEV_HOSTNAME}:6278"
+      ALLOWED_ORIGINS: "https://${DDEV_HOSTNAME}:6275,https://${DDEV_HOSTNAME}:6278,http://localhost:6274,http://localhost:6277,http://mcp-inspector:6274,http://mcp-inspector:6277"
+      MCP_SERVER_REQUEST_TIMEOUT: "10000"
+      MCP_REQUEST_TIMEOUT_RESET_ON_PROGRESS: "true"
+      MCP_REQUEST_MAX_TOTAL_TIMEOUT: "60000"
+      VIRTUAL_HOST: ${DDEV_HOSTNAME}
+      HTTP_EXPOSE: "6274:6274,6277:6277"
+      HTTPS_EXPOSE: "6275:6274,6278:6277"
+    expose:
+      - "6274"
+      - "6277"
+    volumes:
+      - ".:/mnt/ddev_config:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    working_dir: /app
+    command: >
+      sh -c "
+        echo '=== Starting MCP Inspector Container ===' &&
+        echo 'User info:' && id &&
+        echo 'Node version:' && node --version &&
+        echo 'NPM version:' && npm --version &&
+        echo 'Installing system dependencies...' &&
+        apk add --no-cache git curl docker-cli &&
+        echo 'Setting up npm cache directory...' &&
+        mkdir -p ~/.npm &&
+        echo 'Testing basic connectivity...' &&
+        curl -s https://registry.npmjs.org/ > /dev/null && echo 'NPM registry reachable' || echo 'NPM registry unreachable' &&
+        echo 'Installing MCP Inspector with proper cache...' &&
+        npm config set cache ~/.npm &&
+        npm install -g @modelcontextprotocol/inspector@latest &&
+        echo 'Verifying installation...' &&
+        which mcp-inspector || echo 'mcp-inspector not in PATH' &&
+        npx @modelcontextprotocol/inspector --version &&
+        echo 'Environment variables:' &&
+        printenv | grep -E '^(CLIENT_PORT|SERVER_PORT|HOST|DANGEROUSLY|ALLOWED_ORIGINS|MCP_PROXY_FULL_ADDRESS)' &&
+        echo 'Starting MCP Inspector on ports 6274/6277...' &&
+        echo 'Client UI: https://${DDEV_HOSTNAME}:6275' &&
+        echo 'Proxy Server: https://${DDEV_HOSTNAME}:6278' &&
+        echo 'Starting inspector...' &&
+        echo 'Checking if both ports will be used...' &&
+        echo 'Client port 6274, Proxy port 6277' &&
+        npx @modelcontextprotocol/inspector
+      "
+    healthcheck:
+      disable: true
+    networks:
+      - default
+      - ddev_default
+
+networks:
+  ddev_default:
+    external: true

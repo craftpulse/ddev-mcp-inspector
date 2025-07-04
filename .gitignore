@@ -1,0 +1,14 @@
+# DDEV generated files
+.ddev/.env.mcp-inspector
+.ddev/mcp-servers/*
+!.ddev/mcp-servers/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo

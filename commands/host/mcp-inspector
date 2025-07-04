@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#ddev-generated
+## Description: Manage MCP Inspector service and open in browser
+## Usage: mcp-inspector [status|logs|open]
+## Example: "ddev mcp-inspector" or "ddev mcp-inspector status"
+
+DDEV_HOSTNAME="${DDEV_HOSTNAME:-${DDEV_SITENAME}.${DDEV_TLD:-ddev.site}}"
+CLIENT_HTTPS_PORT="${CLIENT_HTTPS_PORT:-6275}"
+SERVER_HTTPS_PORT="${SERVER_HTTPS_PORT:-6278}"
+
+ACTION="${1:-open}"
+
+case "$ACTION" in
+  "status")
+    echo "Checking MCP Inspector service status..."
+    ddev exec -s mcp-inspector curl -s http://localhost:6274/health >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      echo "✅ MCP Inspector is running"
+      echo "🌐 Client UI: https://${DDEV_HOSTNAME}:${CLIENT_HTTPS_PORT}"
+      echo "🔗 Proxy Server: https://${DDEV_HOSTNAME}:${SERVER_HTTPS_PORT}"
+    else
+      echo "❌ MCP Inspector is not responding"
+      echo "📋 Run 'ddev mcp-inspector logs' to see logs"
+    fi
+    ;;
+  "logs")
+    echo "Showing MCP Inspector logs..."
+    ddev logs -s mcp-inspector -f
+    ;;
+  "open"|*)
+    echo "🚀 MCP Inspector URLs:"
+    echo "   Client UI: https://${DDEV_HOSTNAME}:${CLIENT_HTTPS_PORT}"
+    echo "   Proxy Server: https://${DDEV_HOSTNAME}:${SERVER_HTTPS_PORT}"
+    echo ""
+    echo "Opening MCP Inspector Client UI in browser..."
+    
+    case $OSTYPE in
+      linux*)
+        xdg-open "https://${DDEV_HOSTNAME}:${CLIENT_HTTPS_PORT}" >/dev/null 2>&1 &
+        ;;
+      darwin*)
+        open "https://${DDEV_HOSTNAME}:${CLIENT_HTTPS_PORT}"
+        ;;
+      msys*|cygwin*|mingw*)
+        start "https://${DDEV_HOSTNAME}:${CLIENT_HTTPS_PORT}"
+        ;;
+    esac
+    ;;
+esac
