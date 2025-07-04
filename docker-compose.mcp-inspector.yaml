@@ -2,7 +2,7 @@
 services:
   mcp-inspector:
     container_name: ddev-${DDEV_SITENAME}-mcp-inspector
-    image: node:24-slim
+    image: node:24-alpine
     restart: "no"
     labels:
       com.ddev.site-name: ${DDEV_SITENAME}
@@ -15,6 +15,7 @@ services:
       DANGEROUSLY_OMIT_AUTH: "true"
       HOST: "0.0.0.0"
       ALLOWED_ORIGINS: "*"
+      MCP_PROXY_URL: "https://${DDEV_HOSTNAME}:6278"
       VIRTUAL_HOST: ${DDEV_HOSTNAME}
       HTTP_EXPOSE: "6274:6274,6277:6277"
       HTTPS_EXPOSE: "6275:6274,6278:6277"
@@ -30,7 +31,7 @@ services:
         echo '=== MCP Inspector Starting ===' &&
         echo 'Node version:' && node --version &&
         echo 'Installing git for npm dependencies...' &&
-        apt-get update && apt-get install -y git &&
+        apk add --no-cache git &&
         echo 'Installing MCP Inspector...' &&
         npm install -g @modelcontextprotocol/inspector@latest &&
         echo 'Environment variables:' &&
