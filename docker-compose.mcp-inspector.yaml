@@ -29,8 +29,8 @@ services:
       sh -c "
         echo '=== MCP Inspector Starting ===' &&
         echo 'Node version:' && node --version &&
-        echo 'Installing git for npm dependencies...' &&
-        apk add --no-cache git &&
+        echo 'Installing dependencies...' &&
+        apk add --no-cache git socat &&
         echo 'Installing MCP Inspector...' &&
         npm install -g @modelcontextprotocol/inspector@latest &&
         echo 'Environment variables:' &&
@@ -39,8 +39,11 @@ services:
         echo HOST=$$HOST &&
         echo DANGEROUSLY_OMIT_AUTH=$$DANGEROUSLY_OMIT_AUTH &&
         echo ALLOWED_ORIGINS=$$ALLOWED_ORIGINS &&
-        echo 'Starting MCP Inspector...' &&
-        exec npx @modelcontextprotocol/inspector
+        echo 'Starting MCP Inspector on port 6278...' &&
+        SERVER_PORT=6278 npx @modelcontextprotocol/inspector &
+        echo 'Starting proxy from 6277 to 6278...' &&
+        sleep 5 &&
+        exec socat TCP-LISTEN:6277,fork,reuseaddr TCP:localhost:6278
       "
     healthcheck:
       disable: true
