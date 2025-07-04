@@ -14,7 +14,7 @@ services:
       SERVER_PORT: "6277"
       DANGEROUSLY_OMIT_AUTH: "true"
       HOST: "0.0.0.0"
-      ALLOWED_ORIGINS: "https://${DDEV_HOSTNAME}:6275,http://localhost:6274,http://127.0.0.1:6274"
+      ALLOWED_ORIGINS: "https://${DDEV_HOSTNAME}:6275,https://${DDEV_HOSTNAME}:6277,http://localhost:6274,http://127.0.0.1:6274,http://localhost:6277,http://127.0.0.1:6277"
       MCP_DISABLE_AUTH: "true"
       NO_AUTH: "true"
       VIRTUAL_HOST: ${DDEV_HOSTNAME}
