@@ -2,7 +2,7 @@
 services:
   mcp-inspector:
     container_name: ddev-${DDEV_SITENAME}-mcp-inspector
-    image: node:22-alpine
+    image: node:24-slim
     restart: "no"
     labels:
       com.ddev.site-name: ${DDEV_SITENAME}
@@ -11,7 +11,7 @@ services:
       com.ddev.approot: ${DDEV_APPROOT}
     environment:
       CLIENT_PORT: "6274"
-      SERVER_PORT: "6277" 
+      SERVER_PORT: "6277"
       DANGEROUSLY_OMIT_AUTH: "true"
       HOST: "0.0.0.0"
       ALLOWED_ORIGINS: "*"
@@ -27,22 +27,19 @@ services:
     working_dir: /app
     command: >
       sh -c "
-        echo '=== MCP Inspector Container Starting ===' &&
+        echo '=== MCP Inspector Starting ===' &&
         echo 'Node version:' && node --version &&
-        echo 'NPM version:' && npm --version &&
-        echo 'Installing git for npm installs...' &&
-        apk add --no-cache git &&
+        echo 'Installing git for npm dependencies...' &&
+        apt-get update && apt-get install -y git &&
         echo 'Installing MCP Inspector...' &&
         npm install -g @modelcontextprotocol/inspector@latest &&
-        echo 'Environment:' &&
-        echo 'CLIENT_PORT=' && echo $$CLIENT_PORT &&
-        echo 'SERVER_PORT=' && echo $$SERVER_PORT &&
-        echo 'HOST=' && echo $$HOST &&
-        echo 'ALLOWED_ORIGINS=' && echo $$ALLOWED_ORIGINS &&
-        echo 'DANGEROUSLY_OMIT_AUTH=' && echo $$DANGEROUSLY_OMIT_AUTH &&
+        echo 'Environment variables:' &&
+        echo CLIENT_PORT=$$CLIENT_PORT &&
+        echo SERVER_PORT=$$SERVER_PORT &&
+        echo HOST=$$HOST &&
+        echo DANGEROUSLY_OMIT_AUTH=$$DANGEROUSLY_OMIT_AUTH &&
+        echo ALLOWED_ORIGINS=$$ALLOWED_ORIGINS &&
         echo 'Starting MCP Inspector...' &&
-        echo 'Client UI will be at: https://${DDEV_HOSTNAME}:6275' &&
-        echo 'Proxy Server will be at: https://${DDEV_HOSTNAME}:6278' &&
         exec npx @modelcontextprotocol/inspector
       "
     healthcheck:
